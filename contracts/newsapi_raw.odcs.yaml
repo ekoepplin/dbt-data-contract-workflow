@@ -1,0 +1,220 @@
+# Open Data Contract Standard (ODCS) v3.1.0
+# Contract for the RAW layer: dlt-loaded NewsAPI articles landing in DuckDB.
+# Producer: dlt pipeline (dlt_ingest/newsapi_pipeline.py).
+# Consumer: dbt staging layer (stg_newsapi__articles).
+
+apiVersion: v3.1.0
+kind: DataContract
+id: newsapi-raw-articles
+name: NewsAPI Raw Articles
+version: 1.0.0
+status: active
+domain: news
+tenant: demo
+
+description:
+  purpose: >
+    Land unmodified NewsAPI article payloads into DuckDB so downstream dbt
+    models can transform them under a stable schema.
+  usage: >
+    Consumed by the dbt staging model `stg_newsapi__articles`. Not intended
+    for direct BI consumption — use the staging contract instead.
+  limitations: >
+    NewsAPI free tier restricts historical window to 30 days. Text fields
+    may contain HTML entities. Some columns (author, content) are frequently
+    null on the source side.
+
+# ---------------------------------------------------------------------------
+# Servers — where the data physically lives
+# ---------------------------------------------------------------------------
+servers:
+  - server: duckdb-local
+    type: duckdb
+    description: Local DuckDB file created by dlt in the repo root.
+    database: ./newsapi_articles.duckdb
+    schema: newsapi_raw
+    environment: dev
+
+# ---------------------------------------------------------------------------
+# Schema — the two dlt-produced tables. Quality checks live inside each object.
+# ---------------------------------------------------------------------------
+schema:
+  - name: articles_us_en
+    physicalName: articles_us_en
+    logicalType: object
+    physicalType: table
+    description: US-English AI-topic articles.
+    properties:
+      - name: _dlt_id
+        logicalType: string
+        physicalType: VARCHAR
+        required: true
+        unique: true
+        description: dlt row-level surrogate key.
+      - name: _dlt_load_id
+        logicalType: string
+        physicalType: VARCHAR
+        required: true
+        description: dlt load batch id.
+      - name: source__name
+        logicalType: string
+        physicalType: VARCHAR
+        required: true
+        description: News source display name.
+      - name: author
+        logicalType: string
+        physicalType: VARCHAR
+        required: false
+        description: Article author (often null on NewsAPI).
+      - name: title
+        logicalType: string
+        physicalType: VARCHAR
+        required: true
+        description: Article headline.
+      - name: description
+        logicalType: string
+        physicalType: VARCHAR
+        required: false
+      - name: url
+        logicalType: string
+        physicalType: VARCHAR
+        required: true
+        description: Canonical article URL.
+      - name: url_to_image
+        logicalType: string
+        physicalType: VARCHAR
+        required: false
+      - name: published_at
+        logicalType: date
+        physicalType: TIMESTAMP
+        required: true
+      - name: content
+        logicalType: string
+        physicalType: VARCHAR
+        required: false
+    quality:
+      - type: sql
+        description: US-en table must be non-empty after a successful load.
+        query: SELECT COUNT(*) FROM articles_us_en
+        mustBeGreaterThan: 0
+        dimension: completeness
+      - type: sql
+        description: All URLs must be http(s).
+        query: SELECT COUNT(*) FROM articles_us_en WHERE url NOT LIKE 'http%'
+        mustBe: 0
+        dimension: conformity
+      - type: sql
+        description: published_at within the last 60 days (loose demo window).
+        query: SELECT COUNT(*) FROM articles_us_en WHERE published_at < CURRENT_TIMESTAMP - INTERVAL 60 DAY
+        mustBe: 0
+        dimension: timeliness
+
+  - name: articles_de_de
+    physicalName: articles_de_de
+    logicalType: object
+    physicalType: table
+    description: German AI-topic articles (same shape as US-en).
+    properties:
+      - name: _dlt_id
+        logicalType: string
+        physicalType: VARCHAR
+        required: true
+        unique: true
+      - name: _dlt_load_id
+        logicalType: string
+        physicalType: VARCHAR
+        required: true
+      - name: source__name
+        logicalType: string
+        physicalType: VARCHAR
+        required: true
+      - name: author
+        logicalType: string
+        physicalType: VARCHAR
+        required: false
+      - name: title
+        logicalType: string
+        physicalType: VARCHAR
+        required: true
+      - name: description
+        logicalType: string
+        physicalType: VARCHAR
+        required: false
+      - name: url
+        logicalType: string
+        physicalType: VARCHAR
+        required: true
+      - name: url_to_image
+        logicalType: string
+        physicalType: VARCHAR
+        required: false
+      - name: published_at
+        logicalType: date
+        physicalType: TIMESTAMP
+        required: true
+      - name: content
+        logicalType: string
+        physicalType: VARCHAR
+        required: false
+    quality:
+      - type: sql
+        description: DE-de table must be non-empty after a successful load.
+        query: SELECT COUNT(*) FROM articles_de_de
+        mustBeGreaterThan: 0
+        dimension: completeness
+      - type: sql
+        description: All URLs must be http(s).
+        query: SELECT COUNT(*) FROM articles_de_de WHERE url NOT LIKE 'http%'
+        mustBe: 0
+        dimension: conformity
+
+# ---------------------------------------------------------------------------
+# Service Level Agreements
+# ---------------------------------------------------------------------------
+slaProperties:
+  - property: freshness
+    value: 24
+    unit: h
+    element: articles_us_en.published_at
+    description: Raw tables refreshed at least once per day.
+    driver: operational
+  - property: retention
+    value: 90
+    unit: d
+    description: Raw articles retained for 90 days before pruning.
+    driver: operational
+  - property: generalAvailability
+    value: "99"
+    unit: percent
+    description: Best-effort local dev target (demo).
+    driver: operational
+
+# ---------------------------------------------------------------------------
+# Team & support
+# ---------------------------------------------------------------------------
+team:
+  name: NewsAPI Demo Team
+  description: Owners of the raw ingestion contract.
+  members:
+    - username: demo-owner
+      role: Data Product Owner
+
+support:
+  - channel: repo-issues
+    tool: other
+    url: https://github.com/your-org/dbt-data-contract-workflow/issues
+    scope: issues
+    description: File issues, questions, or contract change proposals on GitHub.
+
+# ---------------------------------------------------------------------------
+# Extended terms encoded as customProperties (ODCS v3.1.0 dropped `terms`).
+# ---------------------------------------------------------------------------
+customProperties:
+  - property: usageTerms
+    value: >
+      Internal demo data only. NewsAPI free tier terms apply — do not
+      redistribute article bodies.
+  - property: billing
+    value: NewsAPI free tier (no billing).
+  - property: noticePeriod
+    value: P30D

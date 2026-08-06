@@ -1,0 +1,86 @@
+version: 2
+sources:
+- name: newsapi-raw-articles
+  meta:
+    owner: NewsAPI Demo Team
+  description: Land unmodified NewsAPI article payloads into DuckDB so downstream
+    dbt models can transform them under a stable schema.
+  tables:
+  - name: articles_us_en
+    description: US-English AI-topic articles.
+    columns:
+    - name: _dlt_id
+      data_tests:
+      - not_null
+      - unique
+      data_type: VARCHAR
+      description: dlt row-level surrogate key.
+    - name: _dlt_load_id
+      data_tests:
+      - not_null
+      data_type: VARCHAR
+      description: dlt load batch id.
+    - name: source__name
+      data_tests:
+      - not_null
+      data_type: VARCHAR
+      description: News source display name.
+    - name: author
+      data_type: VARCHAR
+      description: Article author (often null on NewsAPI).
+    - name: title
+      data_tests:
+      - not_null
+      data_type: VARCHAR
+      description: Article headline.
+    - name: description
+      data_type: VARCHAR
+    - name: url
+      data_tests:
+      - not_null
+      data_type: VARCHAR
+      description: Canonical article URL.
+    - name: url_to_image
+      data_type: VARCHAR
+    - name: published_at
+      data_tests:
+      - not_null
+      data_type: TIMESTAMP_TZ
+    - name: content
+      data_type: VARCHAR
+  - name: articles_de_de
+    description: German AI-topic articles (same shape as US-en).
+    columns:
+    - name: _dlt_id
+      data_tests:
+      - not_null
+      - unique
+      data_type: VARCHAR
+    - name: _dlt_load_id
+      data_tests:
+      - not_null
+      data_type: VARCHAR
+    - name: source__name
+      data_tests:
+      - not_null
+      data_type: VARCHAR
+    - name: author
+      data_type: VARCHAR
+    - name: title
+      data_tests:
+      - not_null
+      data_type: VARCHAR
+    - name: description
+      data_type: VARCHAR
+    - name: url
+      data_tests:
+      - not_null
+      data_type: VARCHAR
+    - name: url_to_image
+      data_type: VARCHAR
+    - name: published_at
+      data_tests:
+      - not_null
+      data_type: TIMESTAMP_TZ
+    - name: content
+      data_type: VARCHAR

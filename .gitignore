@@ -1,0 +1,26 @@
+# Secrets
+.env
+.dlt/secrets.toml
+**/.dlt/secrets.toml
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+
+# dbt
+dbt_project/target/
+dbt_project/dbt_packages/
+dbt_project/logs/
+
+# dlt
+.dlt/pipelines/
+.dlt/pipeline_state/
+
+# DuckDB
+*.duckdb
+*.duckdb.wal
+
+# OS
+.DS_Store

@@ -1,0 +1,3 @@
+# Non-secret dlt config. Secrets live in .env (loaded via python-dotenv).
+[runtime]
+log_level = "INFO"
