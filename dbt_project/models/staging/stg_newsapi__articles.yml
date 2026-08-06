@@ -1,0 +1,81 @@
+version: 2
+
+models:
+  - name: stg_newsapi__articles
+    description: "Staged NewsAPI articles unioned across US-en and DE-de locales. Contract-enforced."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: source_name
+        data_type: varchar
+        description: "News source name (e.g., 'BBC News')."
+        constraints:
+          - type: not_null
+
+      - name: author
+        data_type: varchar
+        description: "Article author. Nullable — NewsAPI often omits."
+
+      - name: title
+        data_type: varchar
+        description: "Article title."
+        constraints:
+          - type: not_null
+        tests:
+          - dbt_expectations.expect_column_value_lengths_to_be_between:
+              arguments:
+                min_value: 5
+                max_value: 500
+
+      - name: description
+        data_type: varchar
+        description: "Article summary / lede."
+
+      - name: url
+        data_type: varchar
+        description: "Canonical article URL."
+        constraints:
+          - type: not_null
+        tests:
+          - dbt_expectations.expect_column_values_to_match_regex:
+              arguments:
+                regex: "^https?://"
+
+      - name: image_url
+        data_type: varchar
+        description: "Article thumbnail URL. Nullable."
+
+      - name: published_at
+        data_type: timestamp
+        description: "Publication timestamp (UTC)."
+        constraints:
+          - type: not_null
+
+      - name: content
+        data_type: varchar
+        description: "Article body excerpt (often truncated by NewsAPI)."
+
+      - name: language_code
+        data_type: varchar
+        description: "ISO 639-1 language code."
+        constraints:
+          - type: not_null
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['en', 'de']
+
+      - name: _dlt_load_id
+        data_type: varchar
+        description: "dlt load batch id."
+        constraints:
+          - type: not_null
+
+      - name: _dlt_id
+        data_type: varchar
+        description: "dlt row-level unique id."
+        constraints:
+          - type: not_null
+        tests:
+          - unique

@@ -1,0 +1,12 @@
+newsapi_demo:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      # Absolute path or env-var override keeps the DB pinned to the repo root
+      # regardless of where dbt is invoked from. The Makefile exports
+      # DBT_DUCKDB_PATH; direct `dbt` calls default to ../newsapi_articles.duckdb
+      # relative to this file (dbt-duckdb resolves paths from CWD, so the
+      # env-var route is the reliable one — use `make build` in practice).
+      path: "{{ env_var('DBT_DUCKDB_PATH', '../newsapi_articles.duckdb') }}"
+      threads: 4

@@ -1,0 +1,167 @@
+# Open Data Contract Standard (ODCS) v3.1.0
+# Contract for the STAGING layer: dbt-produced, unioned, typed article table.
+# Producer: dbt model `stg_newsapi__articles`.
+# Consumer: downstream analytics / BI / marts.
+#
+# This is the published deliverable — the contract downstream teams sign on.
+
+apiVersion: v3.1.0
+kind: DataContract
+id: newsapi-staging-articles
+name: NewsAPI Staged Articles
+version: 1.0.0
+status: active
+domain: news
+tenant: demo
+
+description:
+  purpose: >
+    Single, typed, deduplicated view of NewsAPI articles across supported
+    locales. This is the entry point for all downstream analytics.
+  usage: >
+    Build dashboards, ML features, or marts on top of this table. Every column
+    is typed and every non-null constraint is contractually guaranteed.
+    Consumable by any downstream analytics or ML system inside the demo org.
+  limitations: >
+    Contains only the AI-topic slice from the ingestion job. Not a full news
+    firehose. Bilingual only (en, de) in this demo. Do not redistribute the
+    `content` column outside the org — NewsAPI ToS.
+
+servers:
+  - server: duckdb-local
+    type: duckdb
+    description: Local DuckDB file.
+    database: ./newsapi_articles.duckdb
+    schema: main
+    environment: dev
+
+schema:
+  - name: stg_newsapi__articles
+    physicalName: stg_newsapi__articles
+    logicalType: object
+    physicalType: table
+    description: Unioned staged articles from all supported locales.
+    properties:
+      - name: source_name
+        logicalType: string
+        physicalType: VARCHAR
+        required: true
+        description: News source display name.
+      - name: author
+        logicalType: string
+        physicalType: VARCHAR
+        required: false
+        description: Article author. Nullable — NewsAPI often omits.
+      - name: title
+        logicalType: string
+        physicalType: VARCHAR
+        required: true
+        description: Article headline. Length 5-500.
+      - name: description
+        logicalType: string
+        physicalType: VARCHAR
+        required: false
+      - name: url
+        logicalType: string
+        physicalType: VARCHAR
+        required: true
+        description: Canonical article URL (http/https).
+      - name: image_url
+        logicalType: string
+        physicalType: VARCHAR
+        required: false
+      - name: published_at
+        logicalType: date
+        physicalType: TIMESTAMP
+        required: true
+        description: Publication timestamp (UTC).
+      - name: content
+        logicalType: string
+        physicalType: VARCHAR
+        required: false
+      - name: language_code
+        logicalType: string
+        physicalType: VARCHAR
+        required: true
+        description: ISO 639-1 language code. Must be 'en' or 'de'.
+      - name: _dlt_load_id
+        logicalType: string
+        physicalType: VARCHAR
+        required: true
+        description: dlt load batch id (preserved for lineage).
+      - name: _dlt_id
+        logicalType: string
+        physicalType: VARCHAR
+        required: true
+        unique: true
+        description: dlt row-level surrogate key.
+    quality:
+      - type: sql
+        description: Staging table must be non-empty.
+        query: SELECT COUNT(*) FROM stg_newsapi__articles
+        mustBeGreaterThan: 0
+        dimension: completeness
+      - type: sql
+        description: Title length must be within 5-500 characters.
+        query: SELECT COUNT(*) FROM stg_newsapi__articles WHERE LENGTH(title) < 5 OR LENGTH(title) > 500
+        mustBe: 0
+        dimension: conformity
+      - type: sql
+        description: All URLs must be http(s).
+        query: SELECT COUNT(*) FROM stg_newsapi__articles WHERE url NOT LIKE 'http%'
+        mustBe: 0
+        dimension: conformity
+      - type: sql
+        description: language_code confined to declared set.
+        query: SELECT COUNT(*) FROM stg_newsapi__articles WHERE language_code NOT IN ('en', 'de')
+        mustBe: 0
+        dimension: conformity
+      - type: sql
+        description: _dlt_id must be unique across staged rows.
+        query: SELECT COUNT(*) FROM (SELECT _dlt_id FROM stg_newsapi__articles GROUP BY _dlt_id HAVING COUNT(*) > 1) t
+        mustBe: 0
+        dimension: uniqueness
+
+slaProperties:
+  - property: freshness
+    value: 24
+    unit: h
+    element: stg_newsapi__articles.published_at
+    description: Refreshed at least once per day after ingest + dbt build.
+    driver: operational
+  - property: retention
+    value: 90
+    unit: d
+    driver: operational
+  - property: generalAvailability
+    value: "99.5"
+    unit: percent
+    driver: operational
+  - property: latency
+    value: 5
+    unit: m
+    description: Max end-to-end lag from ingest to staging materialization.
+    driver: operational
+
+team:
+  name: NewsAPI Demo Team
+  description: Owners and stewards of the staged NewsAPI product.
+  members:
+    - username: demo-owner
+      role: Data Product Owner
+    - username: demo-steward
+      role: Data Steward
+
+support:
+  - channel: repo-issues
+    tool: other
+    url: https://github.com/your-org/dbt-data-contract-workflow/issues
+    scope: issues
+
+customProperties:
+  - property: usageTerms
+    value: Consumable by any downstream analytics or ML system inside the demo org.
+  - property: billing
+    value: Free — internal demo.
+  - property: noticePeriod
+    value: P30D

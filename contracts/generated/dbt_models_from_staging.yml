@@ -1,0 +1,57 @@
+version: 2
+models:
+- name: stg_newsapi__articles
+  config:
+    meta:
+      data_contract: newsapi-staging-articles
+      owner: NewsAPI Demo Team
+    materialized: table
+    contract:
+      enforced: true
+  description: Unioned staged articles from all supported locales.
+  columns:
+  - name: source_name
+    data_type: VARCHAR
+    description: News source display name.
+    constraints:
+    - type: not_null
+  - name: author
+    data_type: VARCHAR
+    description: Article author. Nullable — NewsAPI often omits.
+  - name: title
+    data_type: VARCHAR
+    description: Article headline. Length 5-500.
+    constraints:
+    - type: not_null
+  - name: description
+    data_type: VARCHAR
+  - name: url
+    data_type: VARCHAR
+    description: Canonical article URL (http/https).
+    constraints:
+    - type: not_null
+  - name: image_url
+    data_type: VARCHAR
+  - name: published_at
+    data_type: TIMESTAMP_TZ
+    description: Publication timestamp (UTC).
+    constraints:
+    - type: not_null
+  - name: content
+    data_type: VARCHAR
+  - name: language_code
+    data_type: VARCHAR
+    description: ISO 639-1 language code. Must be 'en' or 'de'.
+    constraints:
+    - type: not_null
+  - name: _dlt_load_id
+    data_type: VARCHAR
+    description: dlt load batch id (preserved for lineage).
+    constraints:
+    - type: not_null
+  - name: _dlt_id
+    data_type: VARCHAR
+    description: dlt row-level surrogate key.
+    constraints:
+    - type: not_null
+    - type: unique

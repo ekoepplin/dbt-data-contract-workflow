@@ -1,0 +1,71 @@
+// Devcontainer for dbt-data-contract-workflow.
+// Adapted from dbt-bigquery-core/.devcontainer/python-container/devcontainer.json —
+// GCP/BigQuery/Soda credential mounts stripped because this project runs
+// entirely on DuckDB and reads NEWSAPI_KEY from a repo-local .env file.
+{
+  "name": "dbt-data-contract-workflow (Python 3.11 / dbt-duckdb / dlt / datacontract-cli)",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": "..",
+    "target": "development",
+    "args": {
+      "PLATFORM": "amd64",
+      "BUILDPLATFORM": "linux/amd64",
+      "TARGETPLATFORM": "linux/amd64"
+    }
+  },
+
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+
+  "remoteEnv": {
+    "DBT_PROFILES_DIR": "/workspace/dbt_project"
+  },
+
+  "remoteUser": "root",
+
+  "postCreateCommand": "uv sync && uv run dbt deps --project-dir dbt_project --profiles-dir dbt_project",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "bastienboutonnet.vscode-dbt",
+        "innoverio.vscode-dbt-power-user",
+        "editorconfig.editorconfig",
+        "samuelcolvin.jinjahtml",
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": { "path": "/usr/bin/zsh" }
+        },
+        "files.associations": {
+          "*.sql": "jinja-sql",
+          "*.yml": "yaml",
+          "**/target/**": ""
+        },
+        "python.defaultInterpreterPath": "/workspace/.venv/bin/python",
+        "dbt.profilesDirOverride": "${workspaceFolder}/dbt_project",
+        "dbt.queryLimit": 500,
+        "editor.rulers": [99],
+        "yaml.schemas": {
+          "https://raw.githubusercontent.com/dbt-labs/dbt-jsonschema/main/schemas/dbt_yml_files.json": [
+            "/*.yml",
+            "!profiles.yml",
+            "!dbt_project.yml",
+            "!packages.yml"
+          ],
+          "https://raw.githubusercontent.com/dbt-labs/dbt-jsonschema/main/schemas/dbt_project.json": [
+            "dbt_project.yml"
+          ],
+          "https://raw.githubusercontent.com/dbt-labs/dbt-jsonschema/main/schemas/packages.json": [
+            "packages.yml"
+          ]
+        }
+      }
+    }
+  }
+}
