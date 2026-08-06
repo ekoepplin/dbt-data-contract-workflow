@@ -3,7 +3,7 @@ name = "dbt-data-contract-workflow"
 version = "0.1.0"
 description = "Demo: ODCS v3.1.0 data contracts + datacontract-cli + dbt-duckdb, sourced via dlt from NewsAPI"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
     "dlt[duckdb]>=1.0.0",
     "newsapi-python>=0.2.7",

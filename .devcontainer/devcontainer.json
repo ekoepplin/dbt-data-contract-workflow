@@ -7,12 +7,7 @@
   "build": {
     "dockerfile": "../Dockerfile",
     "context": "..",
-    "target": "development",
-    "args": {
-      "PLATFORM": "amd64",
-      "BUILDPLATFORM": "linux/amd64",
-      "TARGETPLATFORM": "linux/amd64"
-    }
+    "target": "development"
   },
 
   "workspaceFolder": "/workspace",

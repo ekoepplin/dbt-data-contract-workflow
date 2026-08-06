@@ -43,8 +43,8 @@ contract-lint:
 # artifacts — copy fields into dbt_project/models/**/*.yml as the contract evolves.
 contract-export:
 	@mkdir -p contracts/generated
-	$(PY) datacontract export dbt-sources contracts/newsapi_raw.odcs.yaml --output contracts/generated/dbt_sources_from_raw.yml
-	$(PY) datacontract export dbt-models contracts/newsapi_staging.odcs.yaml --output contracts/generated/dbt_models_from_staging.yml
+	$(PY) datacontract export dbt-sources contracts/newsapi_raw.odcs.yaml --server duckdb-local --output contracts/generated/dbt_sources_from_raw.yml
+	$(PY) datacontract export dbt-models contracts/newsapi_staging.odcs.yaml --server duckdb-local --output contracts/generated/dbt_models_from_staging.yml
 	@echo "Regenerated: contracts/generated/dbt_sources_from_raw.yml, contracts/generated/dbt_models_from_staging.yml"
 
 demo: ingest deps contract-lint build
