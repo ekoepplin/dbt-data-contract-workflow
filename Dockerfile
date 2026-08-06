@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 # Base — Python 3.11 + uv + DuckDB CLI + git + zsh
 # ---------------------------------------------------------------------------
-FROM --platform=${TARGETPLATFORM:-linux/amd64} python:3.11-slim-bookworm AS base
+FROM python:3.13-slim-bookworm AS base
 
 ENV UV_SYSTEM_PYTHON=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -27,6 +27,14 @@ RUN pip install --no-cache-dir uv && \
 # ---------------------------------------------------------------------------
 FROM base AS development
 WORKDIR /workspace
+
+# Node.js 20 (NodeSource) + Claude Code CLI
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    npm install -g @anthropic-ai/claude-code && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY pyproject.toml ./
 # Warm the dep cache; skip building the local package since /workspace will be
 # bind-mounted by the devcontainer at runtime.

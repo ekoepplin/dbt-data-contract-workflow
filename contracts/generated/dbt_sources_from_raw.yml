@@ -5,6 +5,8 @@ sources:
     owner: NewsAPI Demo Team
   description: Land unmodified NewsAPI article payloads into DuckDB so downstream
     dbt models can transform them under a stable schema.
+  database: ./newsapi_articles.duckdb
+  schema: newsapi_raw
   tables:
   - name: articles_us_en
     description: US-English AI-topic articles.
@@ -45,7 +47,7 @@ sources:
     - name: published_at
       data_tests:
       - not_null
-      data_type: TIMESTAMP_TZ
+      data_type: TIMESTAMP
     - name: content
       data_type: VARCHAR
   - name: articles_de_de
@@ -81,6 +83,6 @@ sources:
     - name: published_at
       data_tests:
       - not_null
-      data_type: TIMESTAMP_TZ
+      data_type: TIMESTAMP
     - name: content
       data_type: VARCHAR

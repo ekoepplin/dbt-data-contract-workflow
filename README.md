@@ -268,7 +268,8 @@ to see the change flow through to the derived dbt YAML.
 - **Add CI.** Wire `make lint-contracts && make demo` into GitHub Actions on
   PR. Fail the build if either contract violates.
 - **Version contracts.** Bump `version:` in the contract on breaking changes.
-  Use `datacontract diff` to compare versions.
+  Use `datacontract changelog <old-file> <new-file>` to compare two versions
+  (e.g. `datacontract changelog <(git show HEAD~1:contracts/newsapi_staging.odcs.yaml) contracts/newsapi_staging.odcs.yaml`).
 - **Publish to a catalog.** `datacontract publish` pushes contracts to
   Data Mesh Manager or a similar registry.
 - **More locales.** The trimmed dlt pipeline handles US-en + DE-de; the source
