@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make lint)",
+      "Bash(make test-newsapi)",
+      "Bash(make test-trends)",
+      "Bash(make fix)",
+      "Bash(make sync)",
+      "Bash(uv sync)",
+      "Bash(uv run *)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git add -- *)",
+      "Bash(git reset HEAD -- *)",
+      "Bash(git mv *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git check-ignore *)",
+      "Bash(gh issue *)",
+      "Bash(gh auth *)",
+      "Bash(gh repo *)",
+      "Bash(gh label *)",
+      "Bash(cd *)",
+      "Bash(printenv)",
+      "Bash(bash -n agentic-workflow/ralph/once.sh)",
+      "Bash(bash -n agentic-workflow/ralph/afk.sh)"
+    ]
+  }
+}
