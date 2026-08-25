@@ -13,18 +13,29 @@
   "workspaceFolder": "/workspace",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
 
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true,
+      "upgradePackages": false
+    }
+  },
+
   "remoteEnv": {
     "DBT_PROFILES_DIR": "/workspace/dbt_project"
   },
 
   "remoteUser": "root",
 
-  "postCreateCommand": "uv sync && uv run dbt deps --project-dir dbt_project --profiles-dir dbt_project",
+  "postCreateCommand": "uv sync && uv run dbt deps --project-dir dbt_project --profiles-dir dbt_project && claude plugin marketplace add mattpocock/skills@v1.2.3 --scope project && claude plugin install mattpocock-skills@mattpocock --scope project --yes",
 
   "customizations": {
     "vscode": {
       "extensions": [
         "ms-python.python",
+        "ms-toolsai.jupyter",
+        "ms-toolsai.jupyter-renderers",
         "bastienboutonnet.vscode-dbt",
         "innoverio.vscode-dbt-power-user",
         "editorconfig.editorconfig",

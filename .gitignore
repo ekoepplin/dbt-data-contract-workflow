@@ -3,11 +3,17 @@
 .dlt/secrets.toml
 **/.dlt/secrets.toml
 
+# Local runtime config
+.env.ralph
+
 # Python
 .venv/
 __pycache__/
 *.pyc
 *.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
 
 # dbt
 dbt_project/target/
