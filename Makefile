@@ -1,4 +1,4 @@
-.PHONY: help install ingest deps build test contract-lint contract-export demo clean
+.PHONY: help install ingest deps build test contract-lint contract-export demo notebook-check clean
 
 PY := uv run
 DBT := $(PY) dbt
@@ -17,6 +17,7 @@ help:
 	@echo "  contract-lint   datacontract lint on both ODCS contracts (structural)"
 	@echo "  contract-export Export ODCS -> dbt sources/models YAML (regenerates from contracts)"
 	@echo "  demo            ingest + deps + contract-lint + build"
+	@echo "  notebook-check  Verify the reproducible notebook environment (kernel, deps, nbstripout)"
 	@echo "  clean           Remove DuckDB, dbt target, dlt state"
 
 install:
@@ -53,6 +54,22 @@ demo: ingest deps contract-lint build
 	@echo "  - contracts linted (structural)"
 	@echo "  - dbt build ran all tests (runtime quality)"
 	@echo "Inspect newsapi_articles.duckdb."
+
+# Verifies the reproducible-notebook-environment promise end to end: Jupyter
+# tooling installed, project kernel registered, dev-group packages importable,
+# nbstripout's git filter active. Confirms notebook support actually works on
+# a freshly built devcontainer, not just that the config files look right.
+notebook-check:
+	@echo "== Jupyter tooling installed =="
+	$(PY) jupyter --version
+	@echo "== Project kernel registered =="
+	$(PY) jupyter kernelspec list | grep -q python3
+	@echo "== Dev-group packages importable =="
+	$(PY) python -c "import ipykernel, duckdb, pandas"
+	@echo "== nbstripout git filter active =="
+	$(PY) nbstripout --status
+	@echo ""
+	@echo "notebook-check passed."
 
 clean:
 	rm -f newsapi_articles.duckdb newsapi_articles.duckdb.wal
