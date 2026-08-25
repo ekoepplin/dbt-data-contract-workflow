@@ -28,7 +28,7 @@
 
   "remoteUser": "root",
 
-  "postCreateCommand": "uv sync && uv run dbt deps --project-dir dbt_project --profiles-dir dbt_project && claude plugin marketplace add mattpocock/skills@v1.2.3 --scope project && claude plugin install mattpocock-skills@mattpocock --scope project --yes",
+  "postCreateCommand": "uv sync && uv run dbt deps --project-dir dbt_project --profiles-dir dbt_project && uv run nbstripout --install --attributes .gitattributes && claude plugin marketplace add mattpocock/skills@v1.2.3 --scope project && claude plugin install mattpocock-skills@mattpocock --scope project --yes",
 
   "customizations": {
     "vscode": {
