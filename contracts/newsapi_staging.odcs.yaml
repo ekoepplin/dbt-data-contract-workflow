@@ -72,7 +72,7 @@ schema:
         required: false
       - name: published_at
         logicalType: date
-        physicalType: TIMESTAMP
+        physicalType: TIMESTAMP WITH TIME ZONE
         required: true
         description: Publication timestamp (UTC).
       - name: content

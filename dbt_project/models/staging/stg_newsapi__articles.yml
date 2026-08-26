@@ -47,7 +47,7 @@ models:
         description: "Article thumbnail URL. Nullable."
 
       - name: published_at
-        data_type: timestamp
+        data_type: "timestamp with time zone"
         description: "Publication timestamp (UTC)."
         constraints:
           - type: not_null

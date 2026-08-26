@@ -1,0 +1,47 @@
+apiVersion: v3.1.0
+kind: DataContract
+id: newsapi-mart-source-daily-counts
+name: NewsAPI Source Daily Counts
+version: 1.0.0
+status: active
+domain: news
+tenant: demo
+
+description:
+  purpose: Daily article counts per source, for the mart layer.
+
+servers:
+  - server: duckdb-local
+    type: duckdb
+    database: ./newsapi_articles.duckdb
+    schema: main
+    environment: dev
+
+schema:
+  - name: mart_newsapi__source_daily_counts
+    physicalName: mart_newsapi__source_daily_counts
+    logicalType: object
+    physicalType: table
+    description: One row per source per day with article counts.
+    properties:
+      - name: source_name
+        logicalType: string
+        physicalType: VARCHAR
+        required: true
+        description: News source display name.
+      - name: article_date
+        logicalType: date
+        physicalType: DATE
+        required: true
+        description: Calendar date (UTC) derived from published_at.
+      - name: article_count
+        logicalType: integer
+        physicalType: BIGINT
+        required: true
+        description: Number of articles from this source on this date.
+    quality:
+      - type: sql
+        description: Counts must be positive.
+        query: SELECT COUNT(*) FROM mart_newsapi__source_daily_counts WHERE article_count <= 0
+        mustBe: 0
+        dimension: conformity

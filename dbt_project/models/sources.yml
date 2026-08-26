@@ -22,7 +22,7 @@ sources:
           - name: url
             data_type: varchar
           - name: published_at
-            data_type: timestamp
+            data_type: "timestamp with time zone"
 
       - name: articles_de_de
         description: "German AI-topic articles."
@@ -41,4 +41,4 @@ sources:
           - name: url
             data_type: varchar
           - name: published_at
-            data_type: timestamp
+            data_type: "timestamp with time zone"
