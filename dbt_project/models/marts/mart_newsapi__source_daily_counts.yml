@@ -1,0 +1,60 @@
+version: 2
+models:
+  - name: mart_newsapi__source_daily_counts
+    description: One row per source per day with article counts.
+    config:
+      meta:
+        datacontract_cli:
+          contract_id: newsapi-mart-source-daily-counts
+    columns:
+      - name: source_name
+        data_type: VARCHAR
+        description: News source display name.
+        data_tests:
+          - not_null:
+              config:
+                meta:
+                  datacontract_cli:
+                    check: mart_newsapi__source_daily_counts__source_name__field_required
+                    include_in_tests: true
+                    contract_versions:
+                      - 1.0.0
+                    generated: true
+              description: Check that field source_name has no missing values
+        meta:
+          datacontract_cli:
+            generated: true
+      - name: article_date
+        data_type: DATE
+        description: Calendar date (UTC) derived from published_at.
+        data_tests:
+          - not_null:
+              config:
+                meta:
+                  datacontract_cli:
+                    check: mart_newsapi__source_daily_counts__article_date__field_required
+                    include_in_tests: true
+                    contract_versions:
+                      - 1.0.0
+                    generated: true
+              description: Check that field article_date has no missing values
+        meta:
+          datacontract_cli:
+            generated: true
+      - name: article_count
+        data_type: BIGINT
+        description: Number of articles from this source on this date.
+        data_tests:
+          - not_null:
+              config:
+                meta:
+                  datacontract_cli:
+                    check: mart_newsapi__source_daily_counts__article_count__field_required
+                    include_in_tests: true
+                    contract_versions:
+                      - 1.0.0
+                    generated: true
+              description: Check that field article_count has no missing values
+        meta:
+          datacontract_cli:
+            generated: true
