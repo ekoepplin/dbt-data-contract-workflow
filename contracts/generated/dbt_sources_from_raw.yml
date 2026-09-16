@@ -47,7 +47,7 @@ sources:
     - name: published_at
       data_tests:
       - not_null
-      data_type: TIMESTAMP
+      data_type: TIMESTAMP WITH TIME ZONE
     - name: content
       data_type: VARCHAR
   - name: articles_de_de
@@ -83,6 +83,6 @@ sources:
     - name: published_at
       data_tests:
       - not_null
-      data_type: TIMESTAMP
+      data_type: TIMESTAMP WITH TIME ZONE
     - name: content
       data_type: VARCHAR

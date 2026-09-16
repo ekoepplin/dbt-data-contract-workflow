@@ -33,7 +33,7 @@ models:
   - name: image_url
     data_type: VARCHAR
   - name: published_at
-    data_type: TIMESTAMP
+    data_type: TIMESTAMP WITH TIME ZONE
     description: Publication timestamp (UTC).
     constraints:
     - type: not_null
