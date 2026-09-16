@@ -148,30 +148,30 @@ guarantees the output must have.
 
 ```mermaid
 flowchart TD
-    A["Author contracts/newsapi_mart.odcs.yaml\n(schema: properties + quality: SQL rules)"] --> B["datacontract lint contracts/newsapi_mart.odcs.yaml\n(pure ODCS validation — no dbt involved yet)"]
-    B --> C["datacontract dbt sync contracts/newsapi_mart.odcs.yaml\n--project-dir dbt_project"]
-    C --> D{"Does a matching .sql\nmodel file already exist?"}
+    A["Author contracts/newsapi_mart.odcs.yaml<br/>(schema: properties + quality: SQL rules)"] --> B["datacontract lint contracts/newsapi_mart.odcs.yaml<br/>(pure ODCS validation — no dbt involved yet)"]
+    B --> C["datacontract dbt sync contracts/newsapi_mart.odcs.yaml<br/>--project-dir dbt_project"]
+    C --> D{"Does a matching .sql<br/>model file already exist?"}
 
-    D -- "No" --> E["⚠️ WARNING: no matching dbt model —\n0 models synced, 0 files updated"]
-    E --> F["You write the SQL stub yourself\nmodels/marts/mart_newsapi__source_daily_counts.sql\n(business logic — sync can't infer this)"]
+    D -- "No" --> E["⚠️ WARNING: no matching dbt model —<br/>0 models synced, 0 files updated"]
+    E --> F["You write the SQL stub yourself<br/>models/marts/mart_newsapi__source_daily_counts.sql<br/>(business logic — sync can't infer this)"]
     F --> C
 
     D -- "Yes" --> G["Parse contract schema + quality rules"]
-    G --> G1["properties[].physicalType\n→ columns[].data_type"]
-    G --> G2["properties[].required: true\n→ data_tests: [not_null]"]
-    G --> G3["properties[].unique: true\n→ data_tests: [unique]"]
-    G --> G4["quality[].type: sql\n→ new singular test file"]
+    G --> G1["properties[].physicalType<br/>→ columns[].data_type"]
+    G --> G2["properties[].required: true<br/>→ data_tests: [not_null]"]
+    G --> G3["properties[].unique: true<br/>→ data_tests: [unique]"]
+    G --> G4["quality[].type: sql<br/>→ new singular test file"]
 
-    G1 --> H["Write/update\nmodels/marts/..._daily_counts.yml in place\n(meta.datacontract_cli.contract_id stamped)"]
+    G1 --> H["Write/update<br/>models/marts/..._daily_counts.yml in place<br/>(meta.datacontract_cli.contract_id stamped)"]
     G2 --> H
     G3 --> H
-    G4 --> I["tests/datacontract_cli/.../\n..._counts_must_be_positive.sql created"]
+    G4 --> I["tests/datacontract_cli/.../<br/>..._counts_must_be_positive.sql created"]
 
-    H --> J["dbt build --select mart_newsapi__source_daily_counts\n(materializes table, runs not_null/unique tests)"]
-    I --> K["datacontract dbt test contracts/newsapi_mart.odcs.yaml\n--project-dir dbt_project\n(also runs the singular test, reports vs. quality: descriptions)"]
+    H --> J["dbt build --select mart_newsapi__source_daily_counts<br/>(materializes table, runs not_null/unique tests)"]
+    I --> K["datacontract dbt test contracts/newsapi_mart.odcs.yaml<br/>--project-dir dbt_project<br/>(also runs the singular test, reports vs. quality: descriptions)"]
     J --> K
 
-    K --> L["🟢 All checks pass —\nthe model now enforces the contract"]
+    K --> L["🟢 All checks pass —<br/>the model now enforces the contract"]
 ```
 
 The loop on the left (`D → E → F → C`) is the guardrail from the nuance
@@ -469,28 +469,28 @@ customProperties:
 
 ```mermaid
 flowchart TD
-    A["dbt build / dbt deps already run"] --> B["dbt_project/target/manifest.json exists\n(compiled model+column+test metadata,\nNOT the live newsapi_articles.duckdb data)"]
-    B --> C["datacontract import dbt\n--source manifest.json\n--model stg_newsapi__articles"]
-    C --> D["Filter manifest to the\nstg_newsapi__articles node"]
-    D --> E["Walk that model's columns: metadata\n(from stg_newsapi__articles.yml)"]
+    A["dbt build / dbt deps already run"] --> B["dbt_project/target/manifest.json exists<br/>(compiled model+column+test metadata,<br/>NOT the live newsapi_articles.duckdb data)"]
+    B --> C["datacontract import dbt<br/>--source manifest.json<br/>--model stg_newsapi__articles"]
+    C --> D["Filter manifest to the<br/>stg_newsapi__articles node"]
+    D --> E["Walk that model's columns: metadata<br/>(from stg_newsapi__articles.yml)"]
 
-    E --> E1["data_type\n→ physicalType / logicalType"]
-    E --> E2["constraints: [not_null]\n→ required: true"]
-    E --> E3["unique test on _dlt_id\n→ unique: true + primaryKey: true"]
+    E --> E1["data_type<br/>→ physicalType / logicalType"]
+    E --> E2["constraints: [not_null]<br/>→ required: true"]
+    E --> E3["unique test on _dlt_id<br/>→ unique: true + primaryKey: true"]
 
-    E1 --> F["Stamp customProperties:\ndbt_version = 1.12.0"]
+    E1 --> F["Stamp customProperties:<br/>dbt_version = 1.12.0"]
     E2 --> F
     E3 --> F
 
-    F --> G["Emit ODCS contract\nstatus: draft"]
+    F --> G["Emit ODCS contract<br/>status: draft"]
 
-    G --> H{"Diff against hand-authored\nnewsapi_staging.odcs.yaml"}
-    H --> I["quality: section missing\n(dbt_expectations regex, length,\naccepted_values did NOT survive)"]
-    H --> J["servers: block missing\n(no DuckDB path/schema)"]
-    H --> K["description / team /\nslaProperties missing"]
-    H --> L["duckdb isn't a supported\nimport source type —\nmanifest is the only path in"]
+    G --> H{"Diff against hand-authored<br/>newsapi_staging.odcs.yaml"}
+    H --> I["quality: section missing<br/>(dbt_expectations regex, length,<br/>accepted_values did NOT survive)"]
+    H --> J["servers: block missing<br/>(no DuckDB path/schema)"]
+    H --> K["description / team /<br/>slaProperties missing"]
+    H --> L["duckdb isn't a supported<br/>import source type —<br/>manifest is the only path in"]
 
-    I --> M["Fill gaps by hand,\nre-lint, promote status → active"]
+    I --> M["Fill gaps by hand,<br/>re-lint, promote status → active"]
     J --> M
     K --> M
     L --> M
