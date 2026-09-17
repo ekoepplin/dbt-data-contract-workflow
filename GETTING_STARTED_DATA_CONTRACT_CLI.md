@@ -50,9 +50,8 @@ publish    Publish the data contract to Entropy Data.
 api        Start the datacontract CLI as server application with REST API.
 ```
 
-(The main `README.md`'s "Extending" section used to say `datacontract diff`
-— that command doesn't exist in `1.1.0`. **Fixed**: it now says `datacontract
-changelog <old-file> <new-file>`, the real command.)
+(There is no `datacontract diff` in `1.1.0` — use `datacontract changelog
+<old-file> <new-file>` to compare two contract versions.)
 
 The `dbt` subcommand group is what makes contract-first scaffolding possible:
 
@@ -99,31 +98,27 @@ boilerplate" — but it's a **one-shot dump**, not a live sync: run it again and
 it overwrites the output file; it doesn't touch your actual model files for
 you.
 
-### 1.1 A bug this repo had, now fixed
+### 1.1 Pass `--server` so `sources.yml` gets `database:`/`schema:`
 
-`export dbt-sources`/`dbt-models`/`dbt-staging-sql` re-derive each column's
-`data_type` through a SQL-dialect type table keyed by `--server`. **Without
-`--server`, it silently defaults to a Snowflake-style dialect** — it does
-*not* auto-pick the contract's own declared server, even when there's only
-one. Confirmed by diffing the two:
+Column `data_type`s in the exported YAML come straight from each property's
+`physicalType` in the contract — e.g. `published_at` is declared
+`physicalType: TIMESTAMP WITH TIME ZONE`, and that is exactly what the export
+emits. `--server` does **not** change the types.
+
+What `--server` does add, for `export dbt-sources`, is the source's physical
+coordinates. Without it, the generated `sources.yml` omits `database:` and
+`schema:`:
 
 ```bash
-uv run datacontract export dbt-sources contracts/newsapi_raw.odcs.yaml --schema-name articles_us_en   | grep -A1 published_at   # → data_type: TIMESTAMP_TZ  (wrong — Snowflake default)
-uv run datacontract export dbt-sources contracts/newsapi_raw.odcs.yaml --schema-name articles_us_en --server duckdb-local   | grep -A1 published_at   # → data_type: TIMESTAMP     (correct — duckdb)
+uv run datacontract export dbt-sources contracts/newsapi_raw.odcs.yaml --server duckdb-local | head
+#   ...
+#   database: ./newsapi_articles.duckdb
+#   schema: newsapi_raw
 ```
 
-`Makefile:46-47` (`contract-export`) called the export commands with no
-`--server`, so `contracts/generated/dbt_sources_from_raw.yml` and
-`dbt_models_from_staging.yml` had `published_at: TIMESTAMP_TZ` committed —
-a type DuckDB's `sources.yml` would never actually declare. **Fixed**: both
-`Makefile` targets now pass `--server duckdb-local` explicitly, and the two
-generated files have been regenerated (`published_at: TIMESTAMP` in both
-now). Passing `--server` also pulled in `database: ./newsapi_articles.duckdb`
-and `schema: newsapi_raw` into `dbt_sources_from_raw.yml`, which weren't
-present before — a bonus, not just the type fix.
-
-(`dbt sync` in §2 does **not** have this problem — see §6, it reads the
-contract's own declared server automatically.)
+`Makefile:47-48` (`contract-export`) passes `--server duckdb-local` to both
+export targets so `contracts/generated/dbt_sources_from_raw.yml` carries those
+coordinates. Keep the flag when you regenerate by hand.
 
 ---
 
@@ -585,16 +580,12 @@ The README notes `datacontract test` doesn't support `type: duckdb` servers
 yet (CLI 1.1.0) — it tries to open a live connection to whatever `servers:`
 declares, and duckdb isn't wired into that runtime engine.
 
-`datacontract dbt sync`/`dbt test` **do read `servers:`**, but only to pick a
-label and a type-casting dialect (`--server`'s help text: "Auto-selected if
-only one server exists, else `--target`") — confirmed by testing: syncing
-`newsapi_staging.odcs.yaml` (which declares exactly one server, `duckdb-local`)
-correctly emitted `data_type: TIMESTAMP`, the duckdb type, with no `--server`
-flag needed. Compare that to §1.1 — `export dbt-sources`/`dbt-models` do
-**not** auto-select the single declared server the same way; they default to
-Snowflake-style types unless you pass `--server` explicitly. `sync` is the
-one command in this whole surface that gets single-server auto-detection
-right without you asking for it.
+`datacontract dbt sync`/`dbt test` **do read `servers:`** to pick a label, and
+auto-select the server when only one is declared (`--server`'s help text:
+"Auto-selected if only one server exists, else `--target`") — so syncing
+`newsapi_staging.odcs.yaml` (one server, `duckdb-local`) needs no `--server`
+flag. Column `data_type`s come straight from each property's `physicalType`,
+e.g. `published_at` syncs as `TIMESTAMP WITH TIME ZONE`.
 
 What `sync`/`dbt test` never do is open a live connection to that server —
 `sync` compiles the contract into dbt-native tests, and `dbt test` (invoked
