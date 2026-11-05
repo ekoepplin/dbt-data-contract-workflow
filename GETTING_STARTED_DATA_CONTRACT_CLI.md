@@ -230,7 +230,7 @@ schema:
     quality:
       - type: sql
         description: Counts must be positive.
-        query: SELECT COUNT(*) FROM mart_newsapi__source_daily_counts WHERE article_count <= 0
+        query: SELECT COUNT(*) FROM {model} WHERE article_count <= 0
         mustBe: 0
         dimension: conformity
 ```
@@ -337,7 +337,7 @@ test file), `tests/datacontract_cli/.../..._counts_must_be_positive.sql`:
 -- Source contract: newsapi-mart-source-daily-counts@1.0.0 (model: mart_newsapi__source_daily_counts)
 {{ config(meta={"datacontract_cli": {"check": "mart_newsapi__source_daily_counts__custom_sql", ...}}) }}
 WITH _dc_metric (metric_value) AS (
-SELECT COUNT(*) FROM mart_newsapi__source_daily_counts WHERE article_count <= 0
+SELECT COUNT(*) FROM {{ ref('mart_newsapi__source_daily_counts') }} WHERE article_count <= 0
 )
 SELECT metric_value FROM _dc_metric WHERE metric_value IS NULL OR metric_value <> 0
 ```
