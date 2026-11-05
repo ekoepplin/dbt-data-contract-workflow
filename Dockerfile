@@ -46,10 +46,12 @@ ENV SHELL=/usr/bin/zsh
 # ---------------------------------------------------------------------------
 FROM base AS production
 WORKDIR /workspace
-COPY pyproject.toml Makefile ./
+COPY pyproject.toml README.md Makefile ./
 COPY dlt_ingest ./dlt_ingest
 COPY dbt_project ./dbt_project
 COPY contracts ./contracts
-RUN uv sync --no-dev && \
+# Makefile targets call plain `uv run`, which would otherwise reinstall the dev group.
+ENV UV_NO_DEV=1
+RUN uv sync && \
     uv run dbt deps --project-dir dbt_project --profiles-dir dbt_project
 CMD ["sleep", "infinity"]
