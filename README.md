@@ -96,7 +96,7 @@ container.
 
 ```
 dbt-data-contract-workflow/
-├── dlt_ingest/newsapi_pipeline.py     # dlt source (adapted from an internal repo)
+├── dlt_ingest/newsapi_pipeline.py     # dlt source (adapted from dbt-bigquery-core)
 ├── contracts/
 │   ├── newsapi_raw.odcs.yaml          # gate 1 — raw dlt output
 │   └── newsapi_staging.odcs.yaml      # gate 2 — dbt staging output
@@ -289,6 +289,6 @@ to see the change flow through to the derived dbt YAML.
 
 ## Credits
 
-The dlt pipeline is adapted from an internal `dbt-bigquery-core` repo; here
+The dlt pipeline is adapted from my public [`dbt-bigquery-core`](https://github.com/ekoepplin/dbt-bigquery-core) repo; here
 it's trimmed to two locales and pinned to a local DuckDB destination for
 teaching purposes.

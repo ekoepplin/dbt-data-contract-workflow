@@ -1,12 +1,12 @@
 # Presentation Outline: Schema Contracts → Data Contracts in dbt
 
-Internal team session, ~35 min (30 talk + ~5 buffer for questions mid-flow).
+Team session, ~35 min (30 talk + ~5 buffer for questions mid-flow).
 No slide deck — this is a run-of-show for presenting `GETTING_STARTED_DATA_CONTRACT_CLI.md`
 and this repo's code/CLI directly. Each section names the file/command to have
 open and the point to land before moving on.
 
 Pre-flight (do before people join):
-- `git pull` to confirm you're on `a20b624`+ (published_at TIMESTAMP WITH TIME ZONE fix, mart demo staged)
+- `git pull` to confirm you're on `e8b0cbf`+ (published_at TIMESTAMP WITH TIME ZONE fix, mart demo staged)
 - Terminal open at repo root, `.venv` activated
 - Have `README.md`, `GETTING_STARTED_DATA_CONTRACT_CLI.md`, and the four contract/model
   files below open in tabs
