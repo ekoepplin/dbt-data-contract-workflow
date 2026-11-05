@@ -32,7 +32,7 @@ dbt staging output. `datacontract lint` validates contract *shape*;
 |---|---|
 | `dlt_ingest/newsapi_pipeline.py` | dlt source: NewsAPI (US-en, DE-de) → DuckDB |
 | `contracts/*.odcs.yaml` | The two ODCS contracts (raw, staging) |
-| `contracts/generated/` | Derived dbt YAML from `make contract-export` (gitignored, regenerate locally) |
+| `contracts/generated/` | Derived dbt YAML from `make contract-export` (tracked) |
 | `dbt_project/` | dbt project (DuckDB target); `models/staging/stg_newsapi__articles` |
 | `notebooks/` | Jupyter notebooks; kernel runs against the repo's `.venv` (see ADR below) |
 | `Makefile` | Every workflow entrypoint — run `make help` |
@@ -68,21 +68,23 @@ state and calls `once.sh` up to `MAX` times (default 10) until the issue
 closes; `once.sh` builds a prompt from the live issue body + `prompt.md`
 (the fixed instructions: explore, implement in-scope only, run feedback-loop
 gates, code-review, one atomic commit, `Closes #<N>` trailer) and runs
-`claude --settings settings.ralph.json`. `settings.ralph.json` allow-lists
-the exact `Bash`/`gh`/`git` invocations the loop is permitted to run
-unattended. It supports three backends (`anthropic`, `vllm`, `ollama`),
-configured via `.env.ralph` (gitignored).
+`claude -p --setting-sources project --settings settings.ralph.json`.
+`settings.ralph.json` allow-lists the exact `Bash`/`gh`/`git` invocations the
+loop is permitted to run unattended. It supports three backends (`anthropic`,
+`vllm`, `ollama`), configured via `.env.ralph` (gitignored).
+`agentic-workflow/ralph-copilot/` is the same loop for GitHub Copilot CLI.
 
-**Known gap, validated against this repo's actual tooling:** `prompt.md`'s
-FEEDBACK LOOPS step requires `make lint`, `make fix`, `make sync`,
-`make test-newsapi`, and `make test-trends` to pass before every commit —
-none of these targets exist in `Makefile` (whose actual targets are
-`help install ingest deps build contract-lint contract-export demo
-notebook-check clean`), and `ruff` isn't a project dependency. `prompt.md`
-was carried over from a different project's template and hasn't been
-adapted to this repo yet. Until it is, every `once.sh` run will fail at the
-first gate. (`Makefile`'s `.PHONY` line also still lists a `test` target
-that was never defined — a separate, pre-existing gap.)
+**Guards, because this repo is public and the issue body becomes the prompt:**
+both `once.sh` scripts refuse any issue that isn't open, written by the repo
+owner, and labelled `ready-for-agent`. Neither loop can call `uv run`. A GitHub
+ruleset blocks force-pushes to and deletion of `master`.
+
+**Known gap:** the loops push directly to `master`, and they can run `make`
+targets against code they just edited, so a run can still execute whatever it
+wrote. Only run them in a devcontainer or other disposable environment, and
+without credentials beyond what the issue needs. (`Makefile`'s `.PHONY` line
+also still lists a `test` target that was never defined — a separate,
+pre-existing gap.)
 
 ## Conventions for agents
 

@@ -75,5 +75,4 @@ clean:
 	rm -f newsapi_articles.duckdb newsapi_articles.duckdb.wal
 	rm -rf dbt_project/target dbt_project/dbt_packages dbt_project/logs
 	rm -rf .dlt/pipelines .dlt/pipeline_state
-	rm -rf contracts/generated
 	find . -type d -name __pycache__ -exec rm -rf {} +
