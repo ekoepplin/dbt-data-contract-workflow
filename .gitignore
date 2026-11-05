@@ -34,3 +34,6 @@ dbt_project/logs/
 # Claude Code local/session state (personal machine config, not shared)
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
+
+# dbt anonymous usage id (generated per machine)
+dbt_project/.user.yml
