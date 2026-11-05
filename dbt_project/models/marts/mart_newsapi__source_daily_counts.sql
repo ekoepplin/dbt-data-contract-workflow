@@ -2,7 +2,7 @@
 
 SELECT
     source_name,
-    CAST(published_at AS DATE) AS article_date,
+    CAST(published_at AT TIME ZONE 'UTC' AS DATE) AS article_date,
     COUNT(*) AS article_count
 FROM {{ ref('stg_newsapi__articles') }}
 GROUP BY 1, 2
