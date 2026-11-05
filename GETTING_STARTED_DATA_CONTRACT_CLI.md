@@ -163,7 +163,7 @@ flowchart TD
     G4 --> I["tests/datacontract_cli/.../<br/>..._counts_must_be_positive.sql created"]
 
     H --> J["dbt build --select mart_newsapi__source_daily_counts<br/>(materializes table, runs not_null/unique tests)"]
-    I --> K["datacontract dbt test contracts/newsapi_mart.odcs.yaml<br/>--project-dir dbt_project<br/>(also runs the singular test, reports vs. quality: descriptions)"]
+    I --> K["datacontract dbt test contracts/newsapi_mart.odcs.yaml<br/>--project-dir dbt_project --profiles-dir dbt_project<br/>(also runs the singular test, reports vs. quality: descriptions)"]
     J --> K
 
     K --> L["🟢 All checks pass —<br/>the model now enforces the contract"]
@@ -251,7 +251,7 @@ generated YAML to; the business logic is yours to write:
 
 SELECT
     source_name,
-    CAST(published_at AS DATE) AS article_date,
+    CAST(published_at AT TIME ZONE 'UTC' AS DATE) AS article_date,
     COUNT(*) AS article_count
 FROM {{ ref('stg_newsapi__articles') }}
 GROUP BY 1, 2
@@ -355,13 +355,14 @@ DBT_DUCKDB_PATH=$PWD/newsapi_articles.duckdb \
   --project-dir dbt_project --profiles-dir dbt_project
 ```
 
-Then run the contract-managed tests specifically (this is what makes the
-custom SQL quality rule execute — plain `dbt build --select` alone runs the
-generic `not_null` tests but not the singular test, since it isn't tied to
-the model by `ref()`):
+`dbt build` already runs these tests, including the singular test, because the
+contract's `{model}` placeholder compiles to `ref()`. Run the contract-managed
+tests to get the same results mapped back to the contract:
 
 ```bash
-$ uv run datacontract dbt test contracts/newsapi_mart.odcs.yaml --project-dir dbt_project
+$ DBT_DUCKDB_PATH=$PWD/newsapi_articles.duckdb \
+  uv run datacontract dbt test contracts/newsapi_mart.odcs.yaml \
+  --project-dir dbt_project --profiles-dir dbt_project
 Contract newsapi-mart-source-daily-counts@1.0.0 — contracts/newsapi_mart.odcs.yaml
 ╭────────┬────────────────────────────────────────┬───────────────┬─────────╮
 │ Result │ Check                                  │ Field         │ Details │
@@ -566,7 +567,7 @@ Try it on a branch.
 | `datacontract export dbt-staging-sql <contract> --schema-name <name>` | One-shot: contract → starter `SELECT` from a source |
 | `datacontract import dbt --source manifest.json [--model <name>]` | Reverse direction: dbt manifest → new ODCS contract |
 | `datacontract dbt sync <contract> --project-dir <dir> [--prune]` | **Contract-first scaffolding**: generates/updates model YAML + tests in place, live, repeatable |
-| `datacontract dbt test <contract> --project-dir <dir>` | Runs the contract-managed tests `sync` created, reports pass/fail mapped to contract checks |
+| `datacontract dbt test <contract> --project-dir <dir> --profiles-dir <dir>` | Runs the contract-managed tests `sync` created, reports pass/fail mapped to contract checks |
 | `datacontract test <contract>` | Connects directly to the server in `servers:` and runs schema+quality checks — **not wired for `type: duckdb` in CLI 1.1.0**, see README's "A note on `datacontract test`" |
 | `datacontract ci <contract>` | Same as `test`, plus GitHub Actions annotations/step summary |
 | `datacontract catalog <contracts...>` | Static HTML catalog of contracts |

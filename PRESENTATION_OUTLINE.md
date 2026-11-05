@@ -114,10 +114,10 @@ uv run datacontract dbt sync contracts/newsapi_mart.odcs.yaml --project-dir dbt_
 DBT_DUCKDB_PATH=$PWD/newsapi_articles.duckdb .venv/bin/dbt build \
   --select mart_newsapi__source_daily_counts --project-dir dbt_project --profiles-dir dbt_project
 
-uv run datacontract dbt test contracts/newsapi_mart.odcs.yaml --project-dir dbt_project
+DBT_DUCKDB_PATH=$PWD/newsapi_articles.duckdb uv run datacontract dbt test \
+  contracts/newsapi_mart.odcs.yaml --project-dir dbt_project --profiles-dir dbt_project
 ```
-**Land the point:** `dbt build` runs the generated `not_null` tests as normal
-dbt tests. `datacontract dbt test` runs the *same* tests but reports them back
+**Land the point:** `dbt build` runs the generated tests as normal dbt tests. `datacontract dbt test` runs the *same* tests but reports them back
 mapped to the contract's human-readable `quality:` descriptions — "Counts must
 be positive" instead of a dbt test ID. That's the payoff: the contract's
 language survives all the way to the test report.
