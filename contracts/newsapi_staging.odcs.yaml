@@ -65,7 +65,8 @@ schema:
         logicalType: string
         physicalType: VARCHAR
         required: true
-        description: Canonical article URL (http/https).
+        unique: true
+        description: Canonical article URL (http/https). One row per article.
       - name: image_url
         logicalType: string
         physicalType: VARCHAR
@@ -119,6 +120,11 @@ schema:
       - type: sql
         description: _dlt_id must be unique across staged rows.
         query: SELECT COUNT(*) FROM (SELECT _dlt_id FROM stg_newsapi__articles GROUP BY _dlt_id HAVING COUNT(*) > 1) t
+        mustBe: 0
+        dimension: uniqueness
+      - type: sql
+        description: Each article URL must appear only once.
+        query: SELECT COUNT(*) FROM (SELECT url FROM stg_newsapi__articles GROUP BY url HAVING COUNT(*) > 1) t
         mustBe: 0
         dimension: uniqueness
 

@@ -27,9 +27,10 @@ models:
     data_type: VARCHAR
   - name: url
     data_type: VARCHAR
-    description: Canonical article URL (http/https).
+    description: Canonical article URL (http/https). One row per article.
     constraints:
     - type: not_null
+    - type: unique
   - name: image_url
     data_type: VARCHAR
   - name: published_at

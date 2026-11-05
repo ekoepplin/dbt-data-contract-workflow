@@ -30,8 +30,14 @@ de_de AS (
         _dlt_load_id,
         _dlt_id
     FROM {{ source('newsapi_raw', 'articles_de_de') }}
+),
+
+unioned AS (
+    SELECT * FROM us_en
+    UNION ALL
+    SELECT * FROM de_de
 )
 
-SELECT * FROM us_en
-UNION ALL
-SELECT * FROM de_de
+-- Ingest appends overlapping date windows, so one article can arrive in several loads.
+SELECT * FROM unioned
+QUALIFY ROW_NUMBER() OVER (PARTITION BY url ORDER BY _dlt_load_id DESC, _dlt_id) = 1

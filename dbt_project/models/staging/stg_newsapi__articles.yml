@@ -38,6 +38,7 @@ models:
         constraints:
           - type: not_null
         tests:
+          - unique
           - dbt_expectations.expect_column_values_to_match_regex:
               arguments:
                 regex: "^https?://"
