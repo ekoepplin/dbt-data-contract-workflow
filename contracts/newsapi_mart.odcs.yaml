@@ -42,6 +42,6 @@ schema:
     quality:
       - type: sql
         description: Counts must be positive.
-        query: SELECT COUNT(*) FROM mart_newsapi__source_daily_counts WHERE article_count <= 0
+        query: SELECT COUNT(*) FROM {model} WHERE article_count <= 0
         mustBe: 0
         dimension: conformity
