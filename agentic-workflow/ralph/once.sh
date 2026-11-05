@@ -70,13 +70,25 @@ REPO="ekoepplin/dbt-data-contract-workflow"
 
 echo "ralph: backend=$BACKEND model=$MODEL issue=#$ISSUE" >&2
 
+# The repo is public and the issue body becomes the prompt, so only work open
+# issues the owner wrote and marked ready.
+gate=$(gh issue view "$ISSUE" --repo "$REPO" --json author,state,labels \
+  --jq '[.author.login, .state, ([.labels[].name] | index("ready-for-agent") != null)] | @tsv')
+read -r author state ready <<< "$gate"
+if [[ "$author" != "${REPO%%/*}" || "$state" != "OPEN" || "$ready" != "true" ]]; then
+  echo "error: refusing #$ISSUE (author=$author state=$state ready-for-agent=$ready)" >&2
+  exit 1
+fi
+
 issue=$(gh issue view "$ISSUE" --repo "$REPO" \
   --json number,title,body,labels,state \
   --jq '"# Issue #\(.number): \(.title)\nState: \(.state)\nLabels: \(.labels | map(.name) | join(", "))\n\n\(.body)"')
 commits=$(git log -n 5 --format='%h %ad %s' --date=short)
 prompt=$(cat "$SCRIPT_DIR/prompt.md")
 
-claude --settings "$CLAUDE_SETTINGS" --permission-mode acceptEdits --model "$MODEL" \
+# Headless: anything outside settings.ralph.json is denied, not prompted. Only
+# project settings load alongside it, so personal allow rules can't widen the run.
+claude -p --setting-sources project --settings "$CLAUDE_SETTINGS" --permission-mode acceptEdits --model "$MODEL" \
   "MISSION: deliver issue #$ISSUE. Do NOT switch to other issues even if you see references to them.
 
 $issue

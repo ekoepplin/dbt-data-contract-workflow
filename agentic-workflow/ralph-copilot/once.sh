@@ -33,6 +33,16 @@ REPO="ekoepplin/dbt-data-contract-workflow"
 
 echo "ralph-copilot: issue=#$ISSUE" >&2
 
+# The repo is public and the issue body becomes the prompt, so only work open
+# issues the owner wrote and marked ready.
+gate=$(gh issue view "$ISSUE" --repo "$REPO" --json author,state,labels \
+  --jq '[.author.login, .state, ([.labels[].name] | index("ready-for-agent") != null)] | @tsv')
+read -r author state ready <<< "$gate"
+if [[ "$author" != "${REPO%%/*}" || "$state" != "OPEN" || "$ready" != "true" ]]; then
+  echo "error: refusing #$ISSUE (author=$author state=$state ready-for-agent=$ready)" >&2
+  exit 1
+fi
+
 issue=$(gh issue view "$ISSUE" --repo "$REPO" \
   --json number,title,body,labels,state \
   --jq '"# Issue #\(.number): \(.title)\nState: \(.state)\nLabels: \(.labels | map(.name) | join(", "))\n\n\(.body)"')
@@ -65,8 +75,10 @@ $prompt_template"
 # enforced by the prompt, not the permission layer — same trust boundary the
 # Claude baseline's `Bash(git add -- *)` pattern relies on.
 #
-# make/uv don't get git/gh's subcommand granularity at all, so
-# "shell(make:*)"/"shell(uv:*)" are the finest scoping Copilot CLI offers.
+# make doesn't get git/gh's subcommand granularity at all, so "shell(make:*)" is
+# the finest scoping Copilot CLI offers. uv stays off the list because `uv run`
+# executes arbitrary code. Force-pushes to master are blocked by a GitHub ruleset,
+# since the literal denies above can't catch every spelling.
 exec copilot -p "$prompt" \
   --no-ask-user \
   --allow-tool='write' \
@@ -82,7 +94,6 @@ exec copilot -p "$prompt" \
   --allow-tool='shell(gh issue comment)' \
   --allow-tool='shell(gh issue close)' \
   --allow-tool='shell(make:*)' \
-  --allow-tool='shell(uv:*)' \
   --deny-tool='shell(git add -A)' \
   --deny-tool='shell(git add --all)' \
   --deny-tool='shell(git add .)' \
